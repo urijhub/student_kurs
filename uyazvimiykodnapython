@@ -1,0 +1,45 @@
+import os
+import subprocess
+import sqlite3
+from flask import Flask, request
+
+app = Flask(__name__)
+
+def execute_command(user_input):
+    # Небезопасное использование пользовательского ввода в subprocess
+    command = f"ls {user_input}"
+    subprocess.call(command, shell=True)
+
+@app.route("/data", methods=["POST"])
+def data_handler():
+    user_data = request.form.get("data")
+    
+    # SQL-инъекция
+    connection = sqlite3.connect("example.db")
+    cursor = connection.cursor()
+    query = f"SELECT * FROM users WHERE username = '{user_data}'"
+    cursor.execute(query)
+    results = cursor.fetchall()
+    connection.close()
+
+    return str(results)
+
+@app.route("/upload", methods=["POST"])
+def upload():
+    uploaded_file = request.files["file"]
+    save_path = os.path.join("/tmp", uploaded_file.filename)
+
+    # Потенциальная уязвимость пути (path traversal)
+    with open(save_path, "wb") as f:
+        f.write(uploaded_file.read())
+
+    return "File uploaded"
+
+def insecure_function():
+    # Использование eval с пользовательским вводом
+    user_input = input("Введите выражение: ")
+    print(eval(user_input))
+
+if __name__ == "__main__":
+    app.run(debug=True)
+    insecure_function()
