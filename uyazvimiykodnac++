@@ -1,0 +1,16 @@
+#include <iostream>
+#include <cstring> // Для strcpy
+#include <cstdlib> // Для system
+
+int main() {
+    char source[] = "Hello, World!";
+    char destination[5];
+
+    // Уязвимость: переполнение буфера через strcpy
+    strcpy(destination, source);
+
+    // Уязвимость: использование system()
+    system("ls -la");
+
+    return 0;
+}
